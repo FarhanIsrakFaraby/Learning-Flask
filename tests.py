@@ -1,15 +1,21 @@
-import os
-os.environ['DATABASE_URL'] = 'sqlite://'
-
+#!/usr/bin/env python
 from datetime import datetime, timezone, timedelta
 import unittest
-from app import app, db
+from app import create_app, db
 from app.models import User, Post
+from config import Config
+
+
+class TestConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite://'
+    ELASTICSEARCH_URL = None
 
 
 class UserModelCase(unittest.TestCase):
     def setUp(self):
-        self.app_context = app.app_context()
+        self.app = create_app(TestConfig)
+        self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
 
@@ -26,11 +32,13 @@ class UserModelCase(unittest.TestCase):
 
     def test_avatar(self):
         u = User(username='john', email='john@example.com')
-        self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/''d4c74594d841139328695756648b6bd6''?d=identicon&s=128'))
+        self.assertEqual(u.avatar(128), ('https://www.gravatar.com/avatar/'
+                                         'd4c74594d841139328695756648b6bd6'
+                                         '?d=identicon&s=128'))
 
     def test_follow(self):
-        u1 = User(username='Farhan', email='farhanisrak24@gmail.com')
-        u2 = User(username='Israk', email='israk@gmail.com')
+        u1 = User(username='john', email='john@example.com')
+        u2 = User(username='susan', email='susan@example.com')
         db.session.add(u1)
         db.session.add(u2)
         db.session.commit()
@@ -46,8 +54,8 @@ class UserModelCase(unittest.TestCase):
         self.assertEqual(u2.followers_count(), 1)
         u1_following = db.session.scalars(u1.following.select()).all()
         u2_followers = db.session.scalars(u2.followers.select()).all()
-        self.assertEqual(u1_following[0].username, 'Farhan')
-        self.assertEqual(u2_followers[0].username, 'Israk')
+        self.assertEqual(u1_following[0].username, 'susan')
+        self.assertEqual(u2_followers[0].username, 'john')
 
         u1.unfollow(u2)
         db.session.commit()
@@ -56,27 +64,30 @@ class UserModelCase(unittest.TestCase):
         self.assertEqual(u2.followers_count(), 0)
 
     def test_follow_posts(self):
-        u1 = User(username='Farhan', email='farhanisrak24@gmail.com.com')
+        u1 = User(username='Farhan', email='farhan@gmail.com')
         u2 = User(username='Israk', email='israk@gmail.com')
-        u3 = User(username='Faraby', email='faraby@gmail.com')
-        u4 = User(username='Sathi', email='sathi@gmail.com')
+        u3 = User(username='Sathi', email='sathi@gmail.com')
+        u4 = User(username='Faraby', email='faraby@gmail.com')
         db.session.add_all([u1, u2, u3, u4])
 
-      
         now = datetime.now(timezone.utc)
-        p1 = Post(body="post from farhan", author=u1,timestamp=now + timedelta(seconds=1))
-        p2 = Post(body="post from israk", author=u2,timestamp=now + timedelta(seconds=4))
-        p3 = Post(body="post from faraby", author=u3,timestamp=now + timedelta(seconds=3))
-        p4 = Post(body="post from sathi", author=u4,timestamp=now + timedelta(seconds=2))
+        p1 = Post(body="post from farhan", author=u1,
+                  timestamp=now + timedelta(seconds=1))
+        p2 = Post(body="post from israk", author=u2,
+                  timestamp=now + timedelta(seconds=4))
+        p3 = Post(body="post from sathi", author=u3,
+                  timestamp=now + timedelta(seconds=3))
+        p4 = Post(body="post from faraby", author=u4,
+                  timestamp=now + timedelta(seconds=2))
         db.session.add_all([p1, p2, p3, p4])
         db.session.commit()
 
+        
         u1.follow(u2)  
         u1.follow(u4)  
-        u2.follow(u3) 
-        u3.follow(u4) 
+        u2.follow(u3)  
+        u3.follow(u4)  
         db.session.commit()
-
 
         f1 = db.session.scalars(u1.following_posts()).all()
         f2 = db.session.scalars(u2.following_posts()).all()
