@@ -1,0 +1,27 @@
+==> Searching for similarly named formulae and casks...
+==> Formulae
+datatype99
+disktype
+freetype
+lcdf-typetools
+quicktype
+typedb
+typescript
+typescript-language-server
+typespeed
+typewritten
+
+To install datatype99, run:
+  brew install datatype99
+
+==> Casks
+anytype
+arctype
+monotype
+typeface
+typeit4me
+wetype
+youtype
+
+To install anytype, run:
+  brew install --cask anytype
