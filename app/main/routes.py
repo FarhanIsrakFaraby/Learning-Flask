@@ -8,7 +8,7 @@ from langdetect import detect, LangDetectException
 from app import db
 from app.main.forms import EditProfileForm, EmptyForm, PostForm, SearchForm
 from app.models import User, Post
-# from app.translate import translate
+from app.translate import translate
 from app.main import bp
 
 
@@ -25,18 +25,18 @@ def before_request():
 @bp.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    # form = PostForm()
-    # if form.validate_on_submit():
-    #     try:
-    #         language = detect(form.post.data)
-    #     except LangDetectException:
-    #         language = ''
-    #     post = Post(body=form.post.data, author=current_user,
-    #                 language=language)
-    #     db.session.add(post)
-        # db.session.commit()
-        # flash(_('Your post is now live!'))
-        # return redirect(url_for('main.index'))
+    form = PostForm()
+    if form.validate_on_submit():
+        try:
+            language = detect(form.post.data)
+        except LangDetectException:
+            language = ''
+        post = Post(body=form.post.data, author=current_user,
+                    language=language)
+        db.session.add(post)
+        db.session.commit()
+        flash(_('Your post is now live!'))
+        return redirect(url_for('main.index'))
     page = request.args.get('page', 1, type=int)
     posts = db.paginate(current_user.following_posts(), page=page,
                         per_page=current_app.config['POSTS_PER_PAGE'],
@@ -45,7 +45,7 @@ def index():
         if posts.has_next else None
     prev_url = url_for('main.index', page=posts.prev_num) \
         if posts.has_prev else None
-    return render_template('index.html', title=_('Home'),
+    return render_template('index.html', title=_('Home'), form=form,
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
 
@@ -83,6 +83,14 @@ def user(username):
     form = EmptyForm()
     return render_template('user.html', user=user, posts=posts.items,
                            next_url=next_url, prev_url=prev_url, form=form)
+
+
+@bp.route('/user/<username>/popup')
+@login_required
+def user_popup(username):
+    user = db.first_or_404(sa.select(User).where(User.username == username))
+    form = EmptyForm()
+    return render_template('user_popup.html', user=user, form=form)
 
 
 @bp.route('/edit_profile', methods=['GET', 'POST'])
@@ -144,13 +152,13 @@ def unfollow(username):
         return redirect(url_for('main.index'))
 
 
-# @bp.route('/translate', methods=['POST'])
-# @login_required
-# def translate_text():
-#     data = request.get_json()
-#     return {'text': translate(data['text'],
-#                               data['source_language'],
-#                               data['dest_language'])}
+@bp.route('/translate', methods=['POST'])
+@login_required
+def translate_text():
+    data = request.get_json()
+    return {'text': translate(data['text'],
+                              data['source_language'],
+                              data['dest_language'])}
 
 
 @bp.route('/search')
