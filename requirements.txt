@@ -1,5 +1,6 @@
 aiosmtpd==1.4.4.post2
 alembic==1.12.1
+async-timeout==4.0.3
 atpublic==4.0
 attrs==23.1.0
 Babel==2.13.1
@@ -21,6 +22,7 @@ Flask-SQLAlchemy==3.1.1
 Flask-WTF==1.2.1
 greenlet==3.0.1
 idna==3.4
+importlib-metadata==7.0.1
 itsdangerous==2.1.2
 Jinja2==3.1.2
 langdetect==1.0.9
@@ -30,11 +32,13 @@ packaging==23.2
 PyJWT==2.8.0
 python-dotenv==1.0.0
 pytz==2023.3.post1
+redis==5.0.1
 requests==2.31.0
-setuptools==68.2.2
+rq==1.15.1
 six==1.16.0
 SQLAlchemy==2.0.23
 typing_extensions==4.8.0
 urllib3==2.1.0
 Werkzeug==3.0.1
 WTForms==3.1.1
+zipp==3.17.0
